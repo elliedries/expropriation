@@ -1,14 +1,17 @@
 # Robbing Peter to Purge Paul - by Timothy Liptrot, Bhavya Srivastava and Claire Lee
-
+setwd("/Users/elliedries/Documents/GitHub/expropriation/")
 # start - packages
 library(tidyverse)
 library(haven)
 library(readr)
 
+# data - loads in Knutsen and Fjelde's ICRG Property Index. 
+ICRGprop_index <- read_csv("./Data/Knutsen_Fjelde_ICRGprop.csv")
+
 # data - international expropriations. There are three files because the Kobrin's original data was expanded by subesequent authors. I ahve contacted all three for permissions.
-expr_h <- read_csv("exprop-Hajzler-2008-03-09.csv")
-expr_m <- read_csv("exprop-Minor-2007-10-22.csv")
-expr_k <- read_csv("exprop-Kobrin-2007-10-22.csv")
+expr_h <- read_csv("./international expropriations/exprop-Hajzler-2008-03-09.csv")
+expr_m <- read_csv("./international expropriations/exprop-Minor-2007-10-22.csv")
+expr_k <- read_csv("./international expropriations/exprop-Kobrin-2007-10-22.csv")
 
 # The variable names are not consistent across the three documents, this changes them all to lower
 names(expr_h)<-tolower(names(expr_h))
@@ -65,6 +68,12 @@ df3 <- left_join(expr_all, small_reign_no_lag, by = c("country","year")) %>%
 
 
 glimpse(df3)
+
+# merge in ICRG property rights index
+ICRGprop_index <- ICRGprop_index %>%
+  select(country, year, ICRGprop)
+
+df4 <- left_join(df3, ICRGprop_index, by = c("country","year"))
 
 #makes a histogram of the years by type. Note the massive drop off in 1980, when basically all DC assets were taken. The increase seince 1990 has accelerated, but I have not integrated the new data yet
 ggplot(data=filter(df3,!is.na(overt)), aes(x=year, fill=overt)) + 
@@ -391,10 +400,12 @@ ggplot(data=df3, aes(x=year, fill=overt, color = overt)) +
 # Personalism section
 
 library(haven)
-GWF <- read_dta("~/GitHub/expropriation/GWF/how_dictatoships_work_data/GWF.dta")
+GWF <- read_dta("./Data/working data/GWF/how_dictatoships_work_data/GWF.dta")
 
 
 glimpse(GWF)
 
 glimpse(ATH)
 ATH$per
+
+#Two way fixed effects model for ICRG Prop Index with consolidation (aka personalism) as the IV
